@@ -6,7 +6,6 @@
 //
 
 #if os(iOS)
-
 import UIKit
 
 enum PJFormFieldType {
@@ -364,5 +363,4 @@ class PJFormControl: UIStackView {
     }
   }
 }
-
 #endif
