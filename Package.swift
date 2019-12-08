@@ -24,7 +24,7 @@ let package = Package(
         .target(
             name: "PJForm",
             dependencies: [],
-            path: "Sources"),
+            path: "Sources/PJForm"),
         .testTarget(
             name: "PJFormTests",
             dependencies: ["PJForm"]),
