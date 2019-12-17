@@ -3,7 +3,11 @@ import UIKit
 
 public class PJForm: NSObject {
   
-  var title: String?
+  //MARK: - Properties
+  
+  public static var spacingBetweenFields: CGFloat = 15
+  
+  private var title: String?
   
   private var controlsStackView: UIStackView!
   
@@ -15,7 +19,7 @@ public class PJForm: NSObject {
   
   private var keyboardFrame: CGRect?
   
-  init(title: String?) {
+  public init(title: String?) {
     super.init()
     
     self.title = title
@@ -25,7 +29,7 @@ public class PJForm: NSObject {
     
     controlsStackView.axis = .vertical
     controlsStackView.distribution = .equalSpacing
-    controlsStackView.spacing = 15
+    controlsStackView.spacing = PJForm.spacingBetweenFields
     
     NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardWillShow(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardDidHide(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
@@ -33,7 +37,7 @@ public class PJForm: NSObject {
   
   //MARK: - Instance Methods
   
-  func validate() -> Bool {
+  public func validate() -> Bool {
     var isValidationSuccess = true
     for control in controlsStackView.arrangedSubviews {
       switch control.self {
@@ -58,7 +62,7 @@ public class PJForm: NSObject {
     return isValidationSuccess
   }
   
-  func buildForm(with controls: [UIView]) -> UIView {
+  public func buildForm(with controls: [UIView]) -> UIView {
     controlsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
     
     var tagCounter = 1001
@@ -118,7 +122,7 @@ public class PJForm: NSObject {
     }
   }
   
-  func fieldValues() -> [String: String] {
+  public func fieldValues() -> [String: String] {
     var formData: [String: String] = [:]
     
     for control in controlsStackView.arrangedSubviews {
@@ -143,12 +147,12 @@ public class PJForm: NSObject {
     return formData
   }
   
-  func fieldValue(forIdentifier identifier: String) -> String? {
+  public func fieldValue(forIdentifier identifier: String) -> String? {
     let values = fieldValues()
     return values[identifier] ?? nil
   }
   
-  func destroy() {
+  public func destroy() {
     title = nil
     NotificationCenter.default.removeObserver(self)
     controlsScrollView.removeFromSuperview()

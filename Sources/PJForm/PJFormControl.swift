@@ -42,25 +42,27 @@ public class PJFormControl: UIStackView {
   
   //MARK: - Font
   
-  static var fieldNameLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+  public static var fieldNameLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
   
-  static var inputFieldFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+  public static var inputFieldFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
   
-  static var errorLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+  public static var errorLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+  
+  public static var spacingBetweenLabelAndField: CGFloat = 8.0
   
   //MARK: - Colors
   
-  static var textColor: UIColor = .black
+  public static var textColor: UIColor = .black
   
-  static var fieldNameColor: UIColor = .lightGray
+  public static var fieldNameColor: UIColor = .lightGray
   
-  static var errorColor: UIColor = .red
+  public static var errorColor: UIColor = .red
   
-  static var successColor: UIColor = .green
+  public static var successColor: UIColor = .green
   
-  static var inputFieldBorderColor: UIColor = .lightGray
+  public static var inputFieldBorderColor: UIColor = .lightGray
   
-  static var tintColor: UIColor = .lightGray
+  public static var tintColor: UIColor = .lightGray
   
   //MARK: - Controls
   
@@ -84,9 +86,9 @@ public class PJFormControl: UIStackView {
   
   private var validationAttributes: [(PJFormFieldValidationAttribute, (Any, String?))]? = nil
   
-  var identifier: String?
+  public var identifier: String?
   
-  var returnKeyType: UIReturnKeyType = .default {
+  public var returnKeyType: UIReturnKeyType = .default {
     didSet {
       if inputField is UITextField {
         (inputField as! UITextField).returnKeyType = returnKeyType
@@ -96,20 +98,21 @@ public class PJFormControl: UIStackView {
   
   private var inputFieldBorderStyle: UITextField.BorderStyle = .roundedRect
   
-  weak var delegate: PJFormControlDelegate?
+  public weak var delegate: PJFormControlDelegate?
   
   private init() {
     super.init(frame: .zero)
     
     axis = .vertical
-    spacing = 8
+    distribution = .fill
+    spacing = PJFormControl.spacingBetweenLabelAndField
   }
   
   required init(coder: NSCoder) {
     super.init(coder: coder)
   }
   
-  func validate() -> (PJFormFieldValidationAttribute, String)? {
+  public func validate() -> (PJFormFieldValidationAttribute, String)? {
     let text = value() ?? ""
     
     if let validationAttributes = validationAttributes {
@@ -126,7 +129,7 @@ public class PJFormControl: UIStackView {
     return nil
   }
   
-  func value() -> String? {
+  public func value() -> String? {
     if inputField is UITextField {
       return (inputField as! UITextField).text
     } else if inputField is UITextView {
@@ -258,28 +261,28 @@ public class PJFormControl: UIStackView {
     
     private var field: PJFormControl
     
-    init() {
+    public init() {
       field = PJFormControl()
       field.translatesAutoresizingMaskIntoConstraints = false
     }
     
-    func setIdentifier(_ identifier: String) -> Builder {
+    public func setIdentifier(_ identifier: String) -> Builder {
       field.identifier = identifier
       return self
     }
     
-    func setIsMultilineInputField(_ isMultiline: Bool) -> Builder {
+    public func setIsMultilineInputField(_ isMultiline: Bool) -> Builder {
       field.isMultilineInputField = isMultiline
       return self
     }
     
-    func setCustomInputView(_ inputView: UIView) -> Builder {
+    public func setCustomInputView(_ inputView: UIView) -> Builder {
       field.customInputView = inputView
       return self
     }
     
     // Setting secured to true, will set the multiline option to false
-    func setSecuredTextEntry(_ isSecured: Bool) -> Builder {
+    public func setSecuredTextEntry(_ isSecured: Bool) -> Builder {
       field.isSecuredTextEntry = isSecured
       
       if field.isMultilineInputField {
@@ -289,32 +292,32 @@ public class PJFormControl: UIStackView {
       return self
     }
     
-    func setInputFieldBorderStyle(_ style: UITextField.BorderStyle) -> Builder {
+    public func setInputFieldBorderStyle(_ style: UITextField.BorderStyle) -> Builder {
       field.inputFieldBorderStyle = style
       return self
     }
     
-    func setFieldName(_ name: String) -> Builder {
+    public func setFieldName(_ name: String) -> Builder {
       field.fieldLabelName = name
       return self
     }
     
-    func setFieldType(_ type: PJFormFieldType) -> Builder {
+    public func setFieldType(_ type: PJFormFieldType) -> Builder {
       field.type = type
       return self
     }
     
-    func setCustomHeightInputField(_ height: CGFloat) -> Builder {
+    public func setCustomHeightInputField(_ height: CGFloat) -> Builder {
       field.inputFieldMinHeight = height
       return self
     }
         
-    func setValidationAttributes(_ attributes: [(PJFormFieldValidationAttribute, (Any, String?))]) -> Builder {
+    public func setValidationAttributes(_ attributes: [(PJFormFieldValidationAttribute, (Any, String?))]) -> Builder {
       field.validationAttributes = attributes
       return self
     }
     
-    func build() -> PJFormControl {
+    public func build() -> PJFormControl {
       
       if field.type == .labeled {
         field.fieldNameLabel = UILabel()

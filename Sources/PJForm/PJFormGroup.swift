@@ -17,7 +17,7 @@ public class PJFormGroup: UIStackView {
   
   //MARK: - Constructor
   
-  init(_ fields: [PJFormControl], axis: NSLayoutConstraint.Axis) {
+  public init(_ fields: [PJFormControl], axis: NSLayoutConstraint.Axis) {
     super.init(frame: CGRect.zero)
     
     self.fields = fields
