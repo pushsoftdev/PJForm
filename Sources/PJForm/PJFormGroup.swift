@@ -39,8 +39,16 @@ public class PJFormGroup: UIStackView {
   
   private func setup() {
     spacing = spaceBetweenFields
-    
     fields.forEach { addArrangedSubview($0) }
+  }
+  
+  //MARK: - Instance Methods
+  
+  func showDummyErrorLabelsInAllGroupedControls() {
+    
+    fields.forEach {
+      $0.showErrorLabel()
+    }
   }
 }
 

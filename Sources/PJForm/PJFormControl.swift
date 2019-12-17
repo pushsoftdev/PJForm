@@ -87,7 +87,7 @@ public class PJFormControl: UIStackView {
   private var validationAttributes: [(PJFormFieldValidationAttribute, (Any, String?))]? = nil
   
   public var identifier: String?
-  
+    
   public var returnKeyType: UIReturnKeyType = .default {
     didSet {
       if inputField is UITextField {
@@ -243,13 +243,32 @@ public class PJFormControl: UIStackView {
       self.setInputFieldBorder(with: PJFormControl.errorColor)
       self.errorLabel?.alpha = 1.0
     }
+    
+    if let parent = superview as? PJFormGroup {
+     parent.showDummyErrorLabelsInAllGroupedControls()
+    }
+  }
+  
+  func showErrorLabel() {
+    if errorLabel?.text == nil {
+      errorLabel?.text = " "
+      print("Setting empty text \(fieldLabelName ?? "")")
+    }
+    
+    errorLabel?.isHidden = false
+    print("Showing Error label in \(fieldLabelName ?? "")")
+  }
+  
+  func hideErrorLabel() {
+    errorLabel?.isHidden = true
   }
   
   func removeError() {
     errorLabel?.text = nil
+    self.hideErrorLabel()
+    
     UIView.animate(withDuration: 0.2) {
       self.inputField.layer.borderColor = PJFormControl.inputFieldBorderColor.cgColor
-      self.errorLabel?.isHidden = true
     }
   }
   
