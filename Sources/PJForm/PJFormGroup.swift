@@ -5,7 +5,6 @@
 //  Created by Pushparaj Jayaseelan on 06/12/19.
 //
 #if os(iOS)
-
 import UIKit
 
 class PJFormGroup: UIStackView {
@@ -44,4 +43,5 @@ class PJFormGroup: UIStackView {
     fields.forEach { addArrangedSubview($0) }
   }
 }
+
 #endif

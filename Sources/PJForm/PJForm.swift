@@ -7,7 +7,17 @@ class PJForm: NSObject {
   
   private var controlsStackView: UIStackView!
   
+  private var controlsScrollView: UIScrollView!
+  
+  private var activeField: PJFormControl?
+  
+  private var scrollViewContentOffset: CGFloat!
+  
+  private var keyboardFrame: CGRect?
+  
   init(title: String?) {
+    super.init()
+    
     self.title = title
     
     controlsStackView = UIStackView()
@@ -16,7 +26,12 @@ class PJForm: NSObject {
     controlsStackView.axis = .vertical
     controlsStackView.distribution = .equalSpacing
     controlsStackView.spacing = 15
+    
+    NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardWillShow(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
+    NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardDidHide(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
   }
+  
+  //MARK: - Instance Methods
   
   func validate() -> Bool {
     var isValidationSuccess = true
@@ -44,28 +59,63 @@ class PJForm: NSObject {
   }
   
   func buildForm(with controls: [UIView]) -> UIView {
-    controls.forEach {
-      guard $0 is PJFormGroup || $0 is PJFormControl else { return }
-      controlsStackView.addArrangedSubview($0)
+    controlsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+    
+    var tagCounter = 1001
+    let controlsCount = controls.count
+    for controlIndex in 0..<controlsCount {
+      let control = controls[controlIndex]
+      
+      guard control is PJFormGroup || control is PJFormControl else { continue }
+      
+      if let fieldsGroup = control as? PJFormGroup {
+        fieldsGroup.fields.forEach {
+          $0.delegate = self
+          $0.tag = tagCounter
+          
+          tagCounter += 1
+          setReturnKeyType(for: $0, index: controlIndex, totalCount: controlsCount)
+        }
+      } else {
+        if let control = control as? PJFormControl {
+          control.delegate = self
+          control.tag = tagCounter
+          
+          tagCounter += 1
+          setReturnKeyType(for: control, index: controlIndex, totalCount: controlsCount)
+        }
+      }
+      
+      controlsStackView.addArrangedSubview(control)
     }
     
-    let scrollView = UIScrollView()
-    scrollView.translatesAutoresizingMaskIntoConstraints = false
-    scrollView.addSubview(controlsStackView)
+    controlsScrollView = UIScrollView()
+    controlsScrollView.delegate = self
+    controlsScrollView.translatesAutoresizingMaskIntoConstraints = false
+    controlsScrollView.addSubview(controlsStackView)
     
-    let formTopConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .top, relatedBy: .equal, toItem: scrollView, attribute: .top, multiplier: 1, constant: 10)
+    let formTopConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .top, relatedBy: .equal, toItem: controlsScrollView, attribute: .top, multiplier: 1, constant: 10)
     
-    let formTrailingConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .trailing, relatedBy: .equal, toItem: scrollView, attribute: .trailing, multiplier: 1, constant: 0)
+    let formTrailingConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .trailing, relatedBy: .equal, toItem: controlsScrollView, attribute: .trailing, multiplier: 1, constant: 0)
     
-    let formLeadingConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .leading, relatedBy: .equal, toItem: scrollView, attribute: .leading, multiplier: 1, constant: 0)
+    let formLeadingConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .leading, relatedBy: .equal, toItem: controlsScrollView, attribute: .leading, multiplier: 1, constant: 0)
     
-    let formBottomConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .bottom, relatedBy: .greaterThanOrEqual, toItem: scrollView, attribute: .bottom, multiplier: 1, constant: 0)
+    let formBottomConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .bottom, relatedBy: .greaterThanOrEqual, toItem: controlsScrollView, attribute: .bottom, multiplier: 1, constant: 0)
     
-    let formCenterXConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .centerX, relatedBy: .equal, toItem: scrollView, attribute: .centerX, multiplier: 1, constant: 0)
+    let formCenterXConstraint = NSLayoutConstraint(item: controlsStackView!, attribute: .centerX, relatedBy: .equal, toItem: controlsScrollView, attribute: .centerX, multiplier: 1, constant: 0)
     
-    scrollView.addConstraints([formTopConstraint, formTrailingConstraint, formLeadingConstraint, formBottomConstraint, formCenterXConstraint])
+    controlsScrollView.addConstraints([formTopConstraint, formTrailingConstraint, formLeadingConstraint, formBottomConstraint, formCenterXConstraint])
     
-    return scrollView
+    //scrollViewContentOffset = controlsScrollView.contentOffset
+    return controlsScrollView
+  }
+  
+  private func setReturnKeyType(for control: PJFormControl, index: Int, totalCount: Int) {
+    if index == totalCount - 1 {
+      control.returnKeyType = .done
+    } else {
+      control.returnKeyType = .next
+    }
   }
   
   func fieldValues() -> [String: String] {
@@ -98,5 +148,86 @@ class PJForm: NSObject {
     return values[identifier] ?? nil
   }
   
+  func destroy() {
+    title = nil
+    NotificationCenter.default.removeObserver(self)
+    controlsScrollView.removeFromSuperview()
+  }
+  
+  //MARK: - UIKeyboard Handlers
+  
+  @objc private func whenKeyboardWillShow(_ notification: Notification) {
+    guard let info = notification.userInfo else { return }
+    
+    if let kbFrame = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+      keyboardFrame = kbFrame
+      let insets = UIEdgeInsets(top: 0, left: 0, bottom: kbFrame.height, right: 0)
+      controlsScrollView.contentInset = insets
+      controlsScrollView.scrollIndicatorInsets = insets
+      
+      moveViewUpToDisplayTextFieldIfNeeded()
+    }
+  }
+  
+  @objc private func whenKeyboardDidHide(_ notification: Notification) {
+    controlsScrollView.contentInset = .zero
+    controlsScrollView.scrollIndicatorInsets = .zero
+  }
+  
+  //MARK: - Private Methods
+  
+  private func moveViewUpToDisplayTextFieldIfNeeded() {
+    guard let inputField = activeField, let kbFrame = keyboardFrame else { return }
+
+    var inputFieldOrigin = inputField.convert(inputField.bounds.origin, to: controlsStackView)
+    
+    if (inputFieldOrigin.y + inputField.frame.height) < kbFrame.origin.y {
+      return
+    }
+    
+    inputFieldOrigin.y = inputFieldOrigin.y + inputField.frame.height + 80
+    
+    let keyboardMinY = kbFrame.origin.y
+    let yDiff = inputFieldOrigin.y - keyboardMinY
+    if yDiff > 0 {
+      let scrollToPoint = CGPoint(x: 0, y: yDiff)
+      controlsScrollView.setContentOffset(scrollToPoint, animated: true)
+    }
+  }
 }
+
+extension PJForm: PJFormControlDelegate {
+  
+  func formControlDidBeginEditing(_ formControl: PJFormControl) {
+    activeField = formControl
+    
+    guard keyboardFrame != .zero else { return }
+    
+    moveViewUpToDisplayTextFieldIfNeeded()
+  }
+  
+  func formControlShouldReturn(_ formControl: PJFormControl) -> Bool {
+    guard let nextControl = controlsStackView.viewWithTag(formControl.tag + 1) as? PJFormControl else {
+      activeField?.inputField.resignFirstResponder()
+      activeField = nil
+      return true
+    }
+    
+    activeField = nextControl
+    activeField?.inputField.becomeFirstResponder()
+    return true
+  }
+}
+
+extension PJForm: UIScrollViewDelegate {
+  
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+      //TODO: - Hide the keyboard if the user drags down the scroll view
+  }
+}
+
+
+
 #endif
+
+

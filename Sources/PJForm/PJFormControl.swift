@@ -6,7 +6,27 @@
 //
 
 #if os(iOS)
+
 import UIKit
+
+@objc protocol PJFormControlDelegate: class {
+  @objc optional func formControlShouldBeginEditing(_ formControl: PJFormControl) -> Bool
+  
+  @objc optional func formControlShouldEndEditing(_ formControl: PJFormControl) -> Bool
+    
+  @objc optional func formControlDidEndEditing(_ formControl: PJFormControl,
+                                             reason: UITextField.DidEndEditingReason)
+    
+  @objc optional func formControlDidBeginEditing(_ formControl: PJFormControl)
+    
+  @objc optional func formControlDidEndEditing(_ formControl: PJFormControl)
+    
+  @objc optional func formControlDidChangeSelection(_ formControl: PJFormControl)
+    
+  @objc optional func formControlShouldClear(_ formControl: PJFormControl) -> Bool
+    
+  @objc optional func formControlShouldReturn(_ formControl: PJFormControl) -> Bool
+}
 
 enum PJFormFieldType {
   case labeled, plain
@@ -28,9 +48,23 @@ class PJFormControl: UIStackView {
   
   static var errorLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
   
+  //MARK: - Colors
+  
+  static var textColor: UIColor = .black
+  
+  static var fieldNameColor: UIColor = .lightGray
+  
+  static var errorColor: UIColor = .red
+  
+  static var successColor: UIColor = .green
+  
+  static var inputFieldBorderColor: UIColor = .lightGray
+  
+  static var tintColor: UIColor = .lightGray
+  
   //MARK: - Controls
   
-  private var inputField: UIView!
+  var inputField: UIView!
   
   private var customInputView: UIView?
   
@@ -52,17 +86,17 @@ class PJFormControl: UIStackView {
   
   var identifier: String?
   
-  private var inputFieldBorderStyle: UITextField.BorderStyle = .none
+  var returnKeyType: UIReturnKeyType = .default {
+    didSet {
+      if inputField is UITextField {
+        (inputField as! UITextField).returnKeyType = returnKeyType
+      }
+    }
+  }
   
-  //MARK: - Colors
+  private var inputFieldBorderStyle: UITextField.BorderStyle = .roundedRect
   
-  private var fieldNameColor: UIColor? = .lightGray
-  
-  private var errorColor: UIColor = .red
-  
-  private var successColor: UIColor = .green
-  
-  private var inputFieldBorderColor: UIColor = .gray
+  weak var delegate: PJFormControlDelegate?
   
   private init() {
     super.init(frame: .zero)
@@ -103,6 +137,9 @@ class PJFormControl: UIStackView {
   }
   
   private func validationErrorMessage(for rule: PJFormFieldValidationAttribute, from rules: [(PJFormFieldValidationAttribute, (Any, String?))]) -> String {
+    let (value, message) = validationAttributes(for: rule)
+    guard message == nil else { return message! }
+    
     switch rule {
     case .required:
       return "\(fieldLabelName ?? "This field ") is required"
@@ -111,30 +148,16 @@ class PJFormControl: UIStackView {
     case .number:
       return "Invalid number"
     case .minValue:
-      let (minRequiredValue, message) = validationAttributes(for: rule)
-      guard message == nil else { return message! }
-      return "\(fieldLabelName ?? "This field ") should be minimum \(minRequiredValue)"
+      return "Minimum \(value) is required"
     case .maxValue:
-      let (maxRequiredValue, message) = validationAttributes(for: rule)
-      guard message == nil else { return message! }
-      
-      return "\(fieldLabelName ?? "This field ") should not exceed \(maxRequiredValue)"
+      return "Maximum \(value) is allowed"
     case .matchWith:
-      let (field, message) = validationAttributes(for: rule)
-      guard message == nil else { return message! }
-      
-      guard let toMatchWithField = field as? PJFormControl else { return "" }
+      guard let toMatchWithField = value as? PJFormControl else { return "" }
       return "\(fieldLabelName ?? "This field ") is not matching with \(toMatchWithField.fieldLabelName ?? "dependant field")"
     case .minLength:
-      let (minLength, message) = validationAttributes(for: rule)
-      guard message == nil else { return message! }
-      
-      return "\(fieldLabelName ?? "This field ") should have minimum \(minLength) characters"
+      return "Minimum \(value) characters required"
     case .maxLength:
-      let (maxLength, message) = validationAttributes(for: rule)
-      guard message == nil else { return message! }
-      
-      return "\(fieldLabelName ?? "This field ") should not exceed \(maxLength) characters"
+      return "Maximum \(value) characters allowed"
     }
   }
   
@@ -214,7 +237,7 @@ class PJFormControl: UIStackView {
     errorLabel?.isHidden = false
     
     UIView.animate(withDuration: 0.2) {
-      self.setInputFieldBorder(with: self.errorColor)
+      self.setInputFieldBorder(with: PJFormControl.errorColor)
       self.errorLabel?.alpha = 1.0
     }
   }
@@ -222,7 +245,7 @@ class PJFormControl: UIStackView {
   func removeError() {
     errorLabel?.text = nil
     UIView.animate(withDuration: 0.2) {
-      self.inputField.layer.borderColor = self.inputFieldBorderColor.cgColor
+      self.inputField.layer.borderColor = PJFormControl.inputFieldBorderColor.cgColor
       self.errorLabel?.isHidden = true
     }
   }
@@ -276,11 +299,6 @@ class PJFormControl: UIStackView {
       return self
     }
     
-    func setFieldNameColor(_ color: UIColor) -> Builder {
-      field.fieldNameColor = color
-      return self
-    }
-    
     func setFieldType(_ type: PJFormFieldType) -> Builder {
       field.type = type
       return self
@@ -290,22 +308,7 @@ class PJFormControl: UIStackView {
       field.inputFieldMinHeight = height
       return self
     }
-    
-    func setErrorColor(_ color: UIColor) -> Builder {
-      field.errorColor = color
-      return self
-    }
-    
-    func setSuccessColor(_ color: UIColor) -> Builder {
-      field.successColor = color
-      return self
-    }
-    
-    func setInputFieldBorderColor(_ color: UIColor) -> Builder {
-      field.inputFieldBorderColor = color
-      return self
-    }
-    
+        
     func setValidationAttributes(_ attributes: [(PJFormFieldValidationAttribute, (Any, String?))]) -> Builder {
       field.validationAttributes = attributes
       return self
@@ -317,32 +320,45 @@ class PJFormControl: UIStackView {
         field.fieldNameLabel = UILabel()
         field.fieldNameLabel?.font = PJFormControl.fieldNameLabelFont
         field.fieldNameLabel?.text = field.fieldLabelName
-        field.fieldNameLabel?.textColor = field.fieldNameColor
+        field.fieldNameLabel?.textColor = PJFormControl.fieldNameColor
         field.addArrangedSubview(field.fieldNameLabel!)
       }
       
       let inputField: UIView!
         
       if field.isMultilineInputField == false {
-        let input = UITextField()
+        let input = PJFormTextField()
+        input.delegate = field
+        input.tintColor = PJFormControl.tintColor
         input.font = PJFormControl.inputFieldFont
         input.isSecureTextEntry = field.isSecuredTextEntry
         input.inputView = field.customInputView
+        
+        if field.type != .labeled {
+          input.placeholder = field.fieldLabelName
+        }
+        
         inputField = input
       } else {
-        let input = UITextView()
+        let input = PJFormTextView()
+        input.delegate = field
         input.font = PJFormControl.inputFieldFont
         input.inputView = field.customInputView
         inputField = input
       }
       
       field.inputField = inputField
+      field.inputField.tintColor = PJFormControl.tintColor
+      
+      if field.type != .labeled {
+        (field.inputField as? UITextField)?.placeholder = field.fieldLabelName
+      }
       
       if field.inputFieldBorderStyle == .roundedRect {
         inputField.layer.borderWidth = 0.7
         inputField.layer.cornerRadius = 4.0
         inputField.clipsToBounds = true
-        inputField.layer.borderColor = field.inputFieldBorderColor.cgColor
+        inputField.layer.borderColor = PJFormControl.inputFieldBorderColor.cgColor
       } else if inputField is UITextField {
         (inputField as! UITextField).borderStyle = field.inputFieldBorderStyle
       }
@@ -355,7 +371,7 @@ class PJFormControl: UIStackView {
       field.errorLabel = UILabel()
       field.errorLabel?.font = PJFormControl.errorLabelFont
       field.errorLabel?.numberOfLines = 0
-      field.errorLabel?.textColor = field.errorColor
+      field.errorLabel?.textColor = PJFormControl.errorColor
       field.errorLabel!.isHidden = true
       field.addArrangedSubview(field.errorLabel!)
       
@@ -363,4 +379,27 @@ class PJFormControl: UIStackView {
     }
   }
 }
+
+extension PJFormControl: UITextFieldDelegate {
+  
+  func textFieldDidBeginEditing(_ textField: UITextField) {
+    delegate?.formControlDidBeginEditing?(self)
+  }
+  
+  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    return delegate?.formControlShouldReturn?(self) ?? true
+  }
+}
+
+extension PJFormControl: UITextViewDelegate {
+  
+  func textViewDidBeginEditing(_ textView: UITextView) {
+      delegate?.formControlDidBeginEditing?(self)
+  }
+  
+  func textViewDidEndEditing(_ textView: UITextView) {
+    print("textViewDidEndEditing")
+  }
+}
+
 #endif
