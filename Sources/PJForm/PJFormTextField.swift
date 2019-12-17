@@ -9,7 +9,7 @@
 import UIKit
 
 @IBDesignable
-class PJFormTextField: UITextField {
+public class PJFormTextField: UITextField {
   
   @IBInspectable var inset: CGFloat = 10
   
@@ -19,7 +19,7 @@ class PJFormTextField: UITextField {
     }
   }
   
-  override func prepareForInterfaceBuilder() {
+  override public func prepareForInterfaceBuilder() {
     
   }
   
@@ -32,14 +32,14 @@ class PJFormTextField: UITextField {
   }
   
   
-  override func textRect(forBounds bounds: CGRect) -> CGRect {
+  override public func textRect(forBounds bounds: CGRect) -> CGRect {
     return bounds.inset(by: padding())
   }
-  override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+  override public func placeholderRect(forBounds bounds: CGRect) -> CGRect {
     return bounds.inset(by: padding())
   }
   
-  override func editingRect(forBounds bounds: CGRect) -> CGRect {
+  override public func editingRect(forBounds bounds: CGRect) -> CGRect {
     return bounds.inset(by: padding())
   }
   

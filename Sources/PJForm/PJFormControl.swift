@@ -9,7 +9,7 @@
 
 import UIKit
 
-@objc protocol PJFormControlDelegate: class {
+@objc public protocol PJFormControlDelegate: class {
   @objc optional func formControlShouldBeginEditing(_ formControl: PJFormControl) -> Bool
   
   @objc optional func formControlShouldEndEditing(_ formControl: PJFormControl) -> Bool
@@ -28,15 +28,15 @@ import UIKit
   @objc optional func formControlShouldReturn(_ formControl: PJFormControl) -> Bool
 }
 
-enum PJFormFieldType {
+public enum PJFormFieldType {
   case labeled, plain
 }
 
-enum PJFormFieldValidationAttribute {
+public enum PJFormFieldValidationAttribute {
   case required, email, minLength, maxLength, number, minValue, maxValue, matchWith
 }
 
-class PJFormControl: UIStackView {
+public class PJFormControl: UIStackView {
   
   private var inputFieldMinHeight: CGFloat = 44.0
   
@@ -254,7 +254,7 @@ class PJFormControl: UIStackView {
     inputField.layer.borderColor = color.cgColor
   }
   
-  class Builder {
+  public class Builder {
     
     private var field: PJFormControl
     
@@ -382,22 +382,22 @@ class PJFormControl: UIStackView {
 
 extension PJFormControl: UITextFieldDelegate {
   
-  func textFieldDidBeginEditing(_ textField: UITextField) {
+  public func textFieldDidBeginEditing(_ textField: UITextField) {
     delegate?.formControlDidBeginEditing?(self)
   }
   
-  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+  public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     return delegate?.formControlShouldReturn?(self) ?? true
   }
 }
 
 extension PJFormControl: UITextViewDelegate {
   
-  func textViewDidBeginEditing(_ textView: UITextView) {
+  public func textViewDidBeginEditing(_ textView: UITextView) {
       delegate?.formControlDidBeginEditing?(self)
   }
   
-  func textViewDidEndEditing(_ textView: UITextView) {
+  public func textViewDidEndEditing(_ textView: UITextView) {
     print("textViewDidEndEditing")
   }
 }

@@ -7,7 +7,7 @@
 #if os(iOS)
 import UIKit
 
-class PJFormGroup: UIStackView {
+public class PJFormGroup: UIStackView {
   
   //MARK: - Properties
   

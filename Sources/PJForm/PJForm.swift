@@ -1,7 +1,7 @@
 #if os(iOS)
 import UIKit
 
-class PJForm: NSObject {
+public class PJForm: NSObject {
   
   var title: String?
   
@@ -198,7 +198,7 @@ class PJForm: NSObject {
 
 extension PJForm: PJFormControlDelegate {
   
-  func formControlDidBeginEditing(_ formControl: PJFormControl) {
+  public func formControlDidBeginEditing(_ formControl: PJFormControl) {
     activeField = formControl
     
     guard keyboardFrame != .zero else { return }
@@ -206,7 +206,7 @@ extension PJForm: PJFormControlDelegate {
     moveViewUpToDisplayTextFieldIfNeeded()
   }
   
-  func formControlShouldReturn(_ formControl: PJFormControl) -> Bool {
+  public func formControlShouldReturn(_ formControl: PJFormControl) -> Bool {
     guard let nextControl = controlsStackView.viewWithTag(formControl.tag + 1) as? PJFormControl else {
       activeField?.inputField.resignFirstResponder()
       activeField = nil
@@ -221,7 +221,7 @@ extension PJForm: PJFormControlDelegate {
 
 extension PJForm: UIScrollViewDelegate {
   
-  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+  public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
       //TODO: - Hide the keyboard if the user drags down the scroll view
   }
 }

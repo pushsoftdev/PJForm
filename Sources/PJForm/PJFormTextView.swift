@@ -11,7 +11,7 @@ import UIKit
 import UIKit
 
 @IBDesignable
-class PJFormTextView: UITextView {
+public class PJFormTextView: UITextView {
   
   @IBInspectable var inset: CGFloat = 0
   
@@ -21,7 +21,7 @@ class PJFormTextView: UITextView {
     }
   }
   
-  override func prepareForInterfaceBuilder() {
+  override public func prepareForInterfaceBuilder() {
     
   }
   
