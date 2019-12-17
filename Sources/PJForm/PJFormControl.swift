@@ -13,18 +13,18 @@ import UIKit
   @objc optional func formControlShouldBeginEditing(_ formControl: PJFormControl) -> Bool
   
   @objc optional func formControlShouldEndEditing(_ formControl: PJFormControl) -> Bool
-    
+  
   @objc optional func formControlDidEndEditing(_ formControl: PJFormControl,
-                                             reason: UITextField.DidEndEditingReason)
-    
+                                               reason: UITextField.DidEndEditingReason)
+  
   @objc optional func formControlDidBeginEditing(_ formControl: PJFormControl)
-    
+  
   @objc optional func formControlDidEndEditing(_ formControl: PJFormControl)
-    
+  
   @objc optional func formControlDidChangeSelection(_ formControl: PJFormControl)
-    
+  
   @objc optional func formControlShouldClear(_ formControl: PJFormControl) -> Bool
-    
+  
   @objc optional func formControlShouldReturn(_ formControl: PJFormControl) -> Bool
 }
 
@@ -84,10 +84,14 @@ public class PJFormControl: UIStackView {
   
   private var isSecuredTextEntry = false
   
+  private var isPickerView = false
+  
+  private var pickerViewDatasource: [String]? = nil
+  
   private var validationAttributes: [(PJFormFieldValidationAttribute, (Any, String?))]? = nil
   
   public var identifier: String?
-    
+  
   public var returnKeyType: UIReturnKeyType = .default {
     didSet {
       if inputField is UITextField {
@@ -245,7 +249,7 @@ public class PJFormControl: UIStackView {
     }
     
     if let parent = superview as? PJFormGroup {
-     parent.showDummyErrorLabelsInAllGroupedControls()
+      parent.showDummyErrorLabelsInAllGroupedControls()
     }
   }
   
@@ -295,8 +299,8 @@ public class PJFormControl: UIStackView {
       return self
     }
     
-    public func setCustomInputView(_ inputView: UIView) -> Builder {
-      field.customInputView = inputView
+    public func setPickerViewDataSource(_ dataSource: [String]?) -> Builder {
+      field.pickerViewDatasource = dataSource
       return self
     }
     
@@ -305,7 +309,7 @@ public class PJFormControl: UIStackView {
       field.isSecuredTextEntry = isSecured
       
       if field.isMultilineInputField {
-       field.isMultilineInputField = false
+        field.isMultilineInputField = false
       }
       
       return self
@@ -330,7 +334,7 @@ public class PJFormControl: UIStackView {
       field.inputFieldMinHeight = height
       return self
     }
-        
+    
     public func setValidationAttributes(_ attributes: [(PJFormFieldValidationAttribute, (Any, String?))]) -> Builder {
       field.validationAttributes = attributes
       return self
@@ -347,14 +351,21 @@ public class PJFormControl: UIStackView {
       }
       
       let inputField: UIView!
-        
+      
       if field.isMultilineInputField == false {
         let input = PJFormTextField()
         input.delegate = field
         input.tintColor = PJFormControl.tintColor
         input.font = PJFormControl.inputFieldFont
         input.isSecureTextEntry = field.isSecuredTextEntry
-        input.inputView = field.customInputView
+        
+        if field.pickerViewDatasource != nil {
+          let pickerView = UIPickerView()          
+          pickerView.dataSource = field
+          pickerView.delegate = field
+          
+          input.inputView = pickerView
+        }
         
         if field.type != .labeled {
           input.placeholder = field.fieldLabelName
@@ -365,7 +376,6 @@ public class PJFormControl: UIStackView {
         let input = PJFormTextView()
         input.delegate = field
         input.font = PJFormControl.inputFieldFont
-        input.inputView = field.customInputView
         inputField = input
       }
       
@@ -416,11 +426,38 @@ extension PJFormControl: UITextFieldDelegate {
 extension PJFormControl: UITextViewDelegate {
   
   public func textViewDidBeginEditing(_ textView: UITextView) {
-      delegate?.formControlDidBeginEditing?(self)
+    delegate?.formControlDidBeginEditing?(self)
   }
   
   public func textViewDidEndEditing(_ textView: UITextView) {
     print("textViewDidEndEditing")
+  }
+}
+
+//MARK: - UIPickerViewDataSource
+
+extension PJFormControl: UIPickerViewDataSource {
+  
+  public func numberOfComponents(in pickerView: UIPickerView) -> Int {
+    return 1
+  }
+  
+  public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+    return pickerViewDatasource?.count ?? 0
+  }
+  
+  public func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+    return pickerViewDatasource![row]
+  }
+}
+
+//MARK: - UIPickerViewDelegate
+
+extension PJFormControl: UIPickerViewDelegate {
+  
+  public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+    let title = pickerViewDatasource![row]
+    (inputField as? UITextField)?.text = title
   }
 }
 
