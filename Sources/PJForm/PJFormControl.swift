@@ -256,11 +256,9 @@ public class PJFormControl: UIStackView {
   func showErrorLabel() {
     if errorLabel?.text == nil {
       errorLabel?.text = " "
-      print("Setting empty text \(fieldLabelName ?? "")")
     }
     
     errorLabel?.isHidden = false
-    print("Showing Error label in \(fieldLabelName ?? "")")
   }
   
   func hideErrorLabel() {
