@@ -193,6 +193,16 @@ public class PJFormControl: UIStackView {
     return nil
   }
   
+  public func resignResponder() {
+    switch inputField {
+    case is UITextField:
+      (inputField as! UITextField).resignFirstResponder()
+    case is UITextView:
+      (inputField as! UITextView).resignFirstResponder()
+    default: break
+    }
+  }
+  
   //MARK: - Private Methods
   
   private func validationErrorMessage(for rule: PJFormFieldValidationAttribute, from rules: [(PJFormFieldValidationAttribute, (Any, String?))]) -> String {

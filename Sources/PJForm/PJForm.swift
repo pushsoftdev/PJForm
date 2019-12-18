@@ -37,6 +37,10 @@ public class PJForm: NSObject {
   
   //MARK: - Instance Methods
   
+  public func resignFirstResponder() {
+    activeField?.resignResponder()
+  }
+  
   public func validate() -> Bool {
     var isValidationSuccess = true
     for control in controlsStackView.arrangedSubviews {
@@ -114,14 +118,6 @@ public class PJForm: NSObject {
     return controlsScrollView
   }
   
-  private func setReturnKeyType(for control: PJFormControl, index: Int, totalCount: Int) {
-    if index == totalCount - 1 {
-      control.returnKeyType = .done
-    } else {
-      control.returnKeyType = .next
-    }
-  }
-  
   public func fieldValues() -> [String: String] {
     var formData: [String: String] = [:]
     
@@ -179,6 +175,14 @@ public class PJForm: NSObject {
   }
   
   //MARK: - Private Methods
+  
+  private func setReturnKeyType(for control: PJFormControl, index: Int, totalCount: Int) {
+    if index == totalCount - 1 {
+      control.returnKeyType = .done
+    } else {
+      control.returnKeyType = .next
+    }
+  }
   
   private func moveViewUpToDisplayTextFieldIfNeeded() {
     guard let inputField = activeField, let kbFrame = keyboardFrame else { return }
