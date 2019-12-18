@@ -110,6 +110,8 @@ public class PJFormControl: UIStackView {
   
   private var inputFieldBorderStyle: UITextField.BorderStyle = .roundedRect
   
+  private var preFilledText: String? = nil
+  
   public weak var delegate: PJFormControlDelegate?
   
   private init() {
@@ -361,6 +363,11 @@ public class PJFormControl: UIStackView {
       return self
     }
     
+    public func setPreFilledText(_ text: String) -> Builder {
+      field.preFilledText = text
+      return self
+    }
+    
     public func setValidationAttributes(_ attributes: [(PJFormFieldValidationAttribute, (Any, String?))]) -> Builder {
       field.validationAttributes = attributes
       return self
@@ -403,12 +410,14 @@ public class PJFormControl: UIStackView {
           input.placeholder = field.fieldLabelName
         }
         
+        input.text = field.preFilledText
         inputField = input
       } else {
         let input = PJFormTextView()
         input.delegate = field
         input.font = PJFormControl.inputFieldFont
         input.autocorrectionType = field.autoCorrectionType
+        input.text = field.preFilledText
         inputField = input
       }
       
