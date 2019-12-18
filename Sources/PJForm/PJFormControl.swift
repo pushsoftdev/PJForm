@@ -86,6 +86,8 @@ public class PJFormControl: UIStackView {
   
   private var isPickerView = false
   
+  private var autoCorrectType: UITextAutocorrectionType = .default
+  
   private var pickerViewDatasource: [String]? = nil
   
   private var validationAttributes: [(PJFormFieldValidationAttribute, (Any, String?))]? = nil
@@ -302,6 +304,11 @@ public class PJFormControl: UIStackView {
       return self
     }
     
+    public func setAutoCorrectType(_ type: UITextAutocorrectionType) -> Builder {
+      field.autoCorrectType = type
+      return self
+    }
+    
     // Setting secured to true, will set the multiline option to false
     public func setSecuredTextEntry(_ isSecured: Bool) -> Builder {
       field.isSecuredTextEntry = isSecured
@@ -356,6 +363,7 @@ public class PJFormControl: UIStackView {
         input.tintColor = PJFormControl.tintColor
         input.font = PJFormControl.inputFieldFont
         input.isSecureTextEntry = field.isSecuredTextEntry
+        input.autocorrectionType = field.autoCorrectType
         
         if field.pickerViewDatasource != nil {
           let pickerView = UIPickerView()          
@@ -374,6 +382,7 @@ public class PJFormControl: UIStackView {
         let input = PJFormTextView()
         input.delegate = field
         input.font = PJFormControl.inputFieldFont
+        input.autocorrectionType = field.autoCorrectType
         inputField = input
       }
       
