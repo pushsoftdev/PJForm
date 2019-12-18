@@ -86,6 +86,10 @@ public class PJFormControl: UIStackView {
   
   private var isPickerView = false
   
+  private var inputSmarkQuotesType: UITextSmartQuotesType = .default
+  
+  private var inputAutoSpellCheckType: UITextSpellCheckingType = .default
+  
   private var inputContentType: UITextContentType?
   
   private var autoCorrectionType: UITextAutocorrectionType = .default
@@ -316,6 +320,16 @@ public class PJFormControl: UIStackView {
       return self
     }
     
+    public func setAutoSpellCheckType(_ type: UITextSpellCheckingType) -> Builder {
+      field.inputAutoSpellCheckType = type
+      return self
+    }
+    
+    public func setSmarkQuotesType(_ type: UITextSmartQuotesType) -> Builder {
+      field.inputSmarkQuotesType = type
+      return self
+    }
+    
     // Setting secured to true, will set the multiline option to false
     public func setSecuredTextEntry(_ isSecured: Bool) -> Builder {
       field.isSecuredTextEntry = isSecured
@@ -370,6 +384,8 @@ public class PJFormControl: UIStackView {
         input.tintColor = PJFormControl.tintColor
         input.font = PJFormControl.inputFieldFont
         input.isSecureTextEntry = field.isSecuredTextEntry
+        
+        input.autocorrectionType = field.autoCorrectionType
         
         if let inputType = field.inputContentType {
          input.textContentType = inputType
