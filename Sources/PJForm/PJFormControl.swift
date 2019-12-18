@@ -114,6 +114,8 @@ public class PJFormControl: UIStackView {
   
   public weak var delegate: PJFormControlDelegate?
   
+  //MARK: - UIView Methods
+  
   private init() {
     super.init(frame: .zero)
     
@@ -125,6 +127,8 @@ public class PJFormControl: UIStackView {
   required init(coder: NSCoder) {
     super.init(coder: coder)
   }
+  
+  //MARK: - Instance Methods
   
   public func validate() -> (PJFormFieldValidationAttribute, String)? {
     let text = value() ?? ""
@@ -143,6 +147,42 @@ public class PJFormControl: UIStackView {
     return nil
   }
   
+  func setErrorMessage(_ message: String) {
+    errorLabel?.text = message
+    errorLabel?.alpha = 0
+    errorLabel?.isHidden = false
+    
+    UIView.animate(withDuration: 0.2) {
+      self.setInputFieldBorder(with: PJFormControl.errorColor)
+      self.errorLabel?.alpha = 1.0
+    }
+    
+    if let parent = superview as? PJFormGroup {
+      parent.showDummyErrorLabelsInAllGroupedControls()
+    }
+  }
+  
+  func showErrorLabel() {
+    if errorLabel?.text == nil {
+      errorLabel?.text = " "
+    }
+    
+    errorLabel?.isHidden = false
+  }
+  
+  func hideErrorLabel() {
+    errorLabel?.isHidden = true
+  }
+  
+  func removeError() {
+    errorLabel?.text = nil
+    self.hideErrorLabel()
+    
+    UIView.animate(withDuration: 0.2) {
+      self.inputField.layer.borderColor = PJFormControl.inputFieldBorderColor.cgColor
+    }
+  }
+  
   public func value() -> String? {
     if inputField is UITextField {
       return (inputField as! UITextField).text
@@ -152,6 +192,8 @@ public class PJFormControl: UIStackView {
     
     return nil
   }
+  
+  //MARK: - Private Methods
   
   private func validationErrorMessage(for rule: PJFormFieldValidationAttribute, from rules: [(PJFormFieldValidationAttribute, (Any, String?))]) -> String {
     let (value, message) = validationAttributes(for: rule)
@@ -248,49 +290,19 @@ public class PJFormControl: UIStackView {
     return true
   }
   
-  func setErrorMessage(_ message: String) {
-    errorLabel?.text = message
-    errorLabel?.alpha = 0
-    errorLabel?.isHidden = false
-    
-    UIView.animate(withDuration: 0.2) {
-      self.setInputFieldBorder(with: PJFormControl.errorColor)
-      self.errorLabel?.alpha = 1.0
-    }
-    
-    if let parent = superview as? PJFormGroup {
-      parent.showDummyErrorLabelsInAllGroupedControls()
-    }
-  }
-  
-  func showErrorLabel() {
-    if errorLabel?.text == nil {
-      errorLabel?.text = " "
-    }
-    
-    errorLabel?.isHidden = false
-  }
-  
-  func hideErrorLabel() {
-    errorLabel?.isHidden = true
-  }
-  
-  func removeError() {
-    errorLabel?.text = nil
-    self.hideErrorLabel()
-    
-    UIView.animate(withDuration: 0.2) {
-      self.inputField.layer.borderColor = PJFormControl.inputFieldBorderColor.cgColor
-    }
-  }
-  
   private func setInputFieldBorder(with color: UIColor) {
     inputField.layer.borderColor = color.cgColor
   }
   
+  //MARK: - Builder for PJFormControl
+  
   public class Builder {
     
+    //MARK: - Properties
+    
     private var field: PJFormControl
+    
+    //MARK: - Instance Methods
     
     public init() {
       field = PJFormControl()
@@ -454,6 +466,8 @@ public class PJFormControl: UIStackView {
   }
 }
 
+//MARK: - UITextFieldDelegate
+
 extension PJFormControl: UITextFieldDelegate {
   
   public func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -464,6 +478,8 @@ extension PJFormControl: UITextFieldDelegate {
     return delegate?.formControlShouldReturn?(self) ?? true
   }
 }
+
+//MARK: - UITextViewDelegate
 
 extension PJFormControl: UITextViewDelegate {
   

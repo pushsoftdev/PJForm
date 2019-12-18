@@ -13,7 +13,7 @@ public class PJForm: NSObject {
   
   private var controlsScrollView: UIScrollView!
   
-  private var activeField: PJFormControl?
+  public var activeField: PJFormControl?
   
   private var scrollViewContentOffset: CGFloat!
   
