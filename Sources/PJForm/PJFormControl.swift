@@ -86,7 +86,9 @@ public class PJFormControl: UIStackView {
   
   private var isPickerView = false
   
-  private var autoCorrectType: UITextAutocorrectionType = .default
+  private var inputContentType: UITextContentType?
+  
+  private var autoCorrectionType: UITextAutocorrectionType = .default
   
   private var pickerViewDatasource: [String]? = nil
   
@@ -304,8 +306,13 @@ public class PJFormControl: UIStackView {
       return self
     }
     
-    public func setAutoCorrectType(_ type: UITextAutocorrectionType) -> Builder {
-      field.autoCorrectType = type
+    public func setAutoCorrectionType(_ type: UITextAutocorrectionType) -> Builder {
+      field.autoCorrectionType = type
+      return self
+    }
+    
+    public func setInputContentType(_ type: UITextContentType) -> Builder {
+      field.inputContentType = type
       return self
     }
     
@@ -363,7 +370,10 @@ public class PJFormControl: UIStackView {
         input.tintColor = PJFormControl.tintColor
         input.font = PJFormControl.inputFieldFont
         input.isSecureTextEntry = field.isSecuredTextEntry
-        input.autocorrectionType = field.autoCorrectType
+        
+        if let inputType = field.inputContentType {
+         input.textContentType = inputType
+        }
         
         if field.pickerViewDatasource != nil {
           let pickerView = UIPickerView()          
@@ -382,7 +392,7 @@ public class PJFormControl: UIStackView {
         let input = PJFormTextView()
         input.delegate = field
         input.font = PJFormControl.inputFieldFont
-        input.autocorrectionType = field.autoCorrectType
+        input.autocorrectionType = field.autoCorrectionType
         inputField = input
       }
       
