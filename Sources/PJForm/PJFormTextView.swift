@@ -6,7 +6,7 @@
 //  Copyright © 2019 Nextologies. All rights reserved.
 //
 
-import UIKit
+#if os(iOS) || os(tvOS)
 
 import UIKit
 
@@ -38,3 +38,5 @@ public class PJFormTextView: UITextView {
   }
   
 }
+
+#endif

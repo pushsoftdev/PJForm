@@ -6,6 +6,8 @@
 //  Copyright © 2019 Nextologies. All rights reserved.
 //
 
+#if os(iOS) || os(tvOS)
+
 import UIKit
 
 @IBDesignable
@@ -48,3 +50,5 @@ public class PJFormTextField: UITextField {
   }
   
 }
+
+#endif
