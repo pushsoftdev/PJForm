@@ -1,9 +1,7 @@
 //
 //  PJFormTextView.swift
-//  GSRMobile
 //
 //  Created by Pushparaj Jayaseelan on 09/12/19.
-//  Copyright © 2019 Nextologies. All rights reserved.
 //
 
 #if os(iOS) || os(tvOS)

@@ -1,9 +1,7 @@
 //
 //  FormTextField.swift
-//  NXT-SatelliteDemo
 //
 //  Created by Pushparaj Jayaseelan on 07/04/19.
-//  Copyright © 2019 Nextologies. All rights reserved.
 //
 
 #if os(iOS) || os(tvOS)
