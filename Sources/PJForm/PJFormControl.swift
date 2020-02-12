@@ -123,7 +123,7 @@ public class PJFormControl: UIStackView {
   
   public weak var delegate: PJFormControlDelegate?
   
-  weak var parentController: UIViewController?
+  public weak var parentController: UIViewController?
   
   //MARK: - UIView Methods
   
