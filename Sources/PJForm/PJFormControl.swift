@@ -123,7 +123,7 @@ public class PJFormControl: UIStackView {
   
   public weak var delegate: PJFormControlDelegate?
   
-  public weak var parentController: UIViewController?
+  private weak var parentController: UIViewController?
   
   //MARK: - UIView Methods
   
@@ -362,6 +362,11 @@ public class PJFormControl: UIStackView {
     
     public func setSmarkQuotesType(_ type: UITextSmartQuotesType) -> Builder {
       field.inputSmarkQuotesType = type
+      return self
+    }
+    
+    public func setParent(controller: UIViewController) -> Builder {
+      field.parentController = controller
       return self
     }
     
