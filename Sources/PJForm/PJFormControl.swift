@@ -42,11 +42,20 @@ public class PJFormControl: UIStackView {
   
   //MARK: - Font
   
-  public static var fieldNameLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+  #if os(iOS)
+    public static var fieldNameLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+    
+    public static var inputFieldFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+    
+    public static var errorLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
+  #else
+    public static var fieldNameLabelFont: UIFont = UIFont.preferredFont(forTextStyle: .body)
+    
+    public static var inputFieldFont: UIFont = UIFont.preferredFont(forTextStyle: .body)
+    
+    public static var errorLabelFont: UIFont = UIFont.preferredFont(forTextStyle: .body)
+  #endif
   
-  public static var inputFieldFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
-  
-  public static var errorLabelFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize)
   
   public static var spacingBetweenLabelAndField: CGFloat = 8.0
   
@@ -113,6 +122,8 @@ public class PJFormControl: UIStackView {
   private var preFilledText: String? = nil
   
   public weak var delegate: PJFormControlDelegate?
+  
+  weak var parentController: UIViewController?
   
   //MARK: - UIView Methods
   
@@ -419,15 +430,7 @@ public class PJFormControl: UIStackView {
         if let inputType = field.inputContentType {
          input.textContentType = inputType
         }
-        
-        if field.pickerViewDatasource != nil {
-          let pickerView = UIPickerView()          
-          pickerView.dataSource = field
-          pickerView.delegate = field
-          
-          input.inputView = pickerView
-        }
-        
+                
         if field.type != .labeled {
           input.placeholder = field.fieldLabelName
         }
@@ -480,6 +483,17 @@ public class PJFormControl: UIStackView {
 
 extension PJFormControl: UITextFieldDelegate {
   
+  public func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+    if pickerViewDatasource != nil {
+        let pickerController = PJPickerController(data: pickerViewDatasource!)
+        pickerController.delegate = self
+        parentController?.present(pickerController, animated: true, completion: nil)
+        return false
+    }
+    
+    return delegate?.formControlShouldBeginEditing?(self) ?? true
+  }
+  
   public func textFieldDidBeginEditing(_ textField: UITextField) {
     delegate?.formControlDidBeginEditing?(self)
   }
@@ -502,30 +516,12 @@ extension PJFormControl: UITextViewDelegate {
   }
 }
 
-//MARK: - UIPickerViewDataSource
+//MARK: - PJPickerControllerDelegate
 
-extension PJFormControl: UIPickerViewDataSource {
+extension PJFormControl: PJPickerControllerDelegate {
   
-  public func numberOfComponents(in pickerView: UIPickerView) -> Int {
-    return 1
-  }
-  
-  public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-    return pickerViewDatasource?.count ?? 0
-  }
-  
-  public func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-    return pickerViewDatasource![row]
-  }
-}
-
-//MARK: - UIPickerViewDelegate
-
-extension PJFormControl: UIPickerViewDelegate {
-  
-  public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-    let title = pickerViewDatasource![row]
-    (inputField as? UITextField)?.text = title
+  func picker(controller: PJPickerController, didSelect item: String, at index: Int) {
+    (inputField as? UITextField)?.text = item
   }
 }
 

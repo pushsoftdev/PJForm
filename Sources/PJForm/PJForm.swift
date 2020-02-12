@@ -19,6 +19,8 @@ public class PJForm: NSObject {
   
   private var keyboardFrame: CGRect?
   
+  weak var controller: UIViewController?
+  
   public init(title: String?) {
     super.init()
     
@@ -31,8 +33,10 @@ public class PJForm: NSObject {
     controlsStackView.distribution = .equalSpacing
     controlsStackView.spacing = PJForm.spacingBetweenFields
     
-    NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardWillShow(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
-    NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardDidHide(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
+    #if os(iOS)
+      NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardWillShow(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
+      NotificationCenter.default.addObserver(self, selector: #selector(whenKeyboardDidHide(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
+    #endif
   }
   
   //MARK: - Instance Methods
@@ -154,25 +158,28 @@ public class PJForm: NSObject {
     controlsScrollView.removeFromSuperview()
   }
   
-  //MARK: - UIKeyboard Handlers
-  
-  @objc private func whenKeyboardWillShow(_ notification: Notification) {
-    guard let info = notification.userInfo else { return }
+  #if os(iOS)
+    //MARK: - UIKeyboard Handlers
     
-    if let kbFrame = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-      keyboardFrame = kbFrame
-      let insets = UIEdgeInsets(top: 0, left: 0, bottom: kbFrame.height, right: 0)
-      controlsScrollView.contentInset = insets
-      controlsScrollView.scrollIndicatorInsets = insets
+    @objc private func whenKeyboardWillShow(_ notification: Notification) {
+      guard let info = notification.userInfo else { return }
       
-      moveViewUpToDisplayTextFieldIfNeeded()
+      if let kbFrame = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+        keyboardFrame = kbFrame
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: kbFrame.height, right: 0)
+        controlsScrollView.contentInset = insets
+        controlsScrollView.scrollIndicatorInsets = insets
+        
+        moveViewUpToDisplayTextFieldIfNeeded()
+      }
     }
-  }
-  
-  @objc private func whenKeyboardDidHide(_ notification: Notification) {
-    controlsScrollView.contentInset = .zero
-    controlsScrollView.scrollIndicatorInsets = .zero
-  }
+    
+    @objc private func whenKeyboardDidHide(_ notification: Notification) {
+      controlsScrollView.contentInset = .zero
+      controlsScrollView.scrollIndicatorInsets = .zero
+    }
+    
+  #endif
   
   //MARK: - Private Methods
   
