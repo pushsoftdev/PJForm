@@ -527,6 +527,7 @@ extension PJFormControl: PJPickerControllerDelegate {
   
   func picker(controller: PJPickerController, didSelect item: String, at index: Int) {
     (inputField as? UITextField)?.text = item
+    resignFirstResponder()
   }
 }
 
